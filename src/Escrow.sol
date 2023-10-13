@@ -7,43 +7,48 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract nftescrow is IERC721Receiver {
     
-    enum PlayerState {newEscrow, nftDeposited, cancelNFT, canceledBeforeDelivery, deliveryInitiated, delivered}         // player state
-    
-    address payable public sellerAddress;
-    address payable public buyerAddress;
+    enum EscrAvailable {NO,YES}
+    address payable public escrAddress;
+    address payable public playerAddress;
     address public nftAddress;
     uint256 tokenID;
-    PlayerState public playerState;
+
+    mapping(address => address) nftOf;     // this will map the players to their NFT address
+    EscrAvailable public escrAvailable; 
 
     constructor()
     {
-        sellerAddress = payable(msg.sender);
-        playerState = PlayerState.newEscrow;
+        escrAddress = payable(address(this));
+        escrAvailable = EscrAvailable.YES;
     }
-    // It must return its Solidity selector to confirm the token transfer. If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+    
     function onERC721Received( address operator, address from, uint256 tokenId, bytes calldata data ) public override returns (bytes4) {
         return this.onERC721Received.selector;
     }
     // This will be a function to deposit NFTS of all the players and send it to this smart contract address //
     function depositNFT(address _NFTAddress, uint256 _TokenID)
         public
-        inPlayerState(PlayerState.newEscrow)
-        onlySeller
+        inEscrAvailable(EscrAvailable.YES)
+        onlyPlayer
     {
         nftAddress = _NFTAddress;
+        playerAddress = payable(msg.sender);
         tokenID = _TokenID;
-        // ERC721(nftAddress) is attempting to interact with an ERC-721 token contract. It uses the nftAddress variable, which is assumed to hold the address of the ERC-721 token contract
-        ERC721(nftAddress).safeTransferFrom(msg.sender, address(this), tokenID);        
-        playerState = PlayerState.nftDeposited;
+        ERC721(nftAddress).safeTransferFrom(msg.sender, address(this), tokenID);
+        nftOf[playerAddress] = nftAddress;        
     }
-    // modifer such that only seller can perform action
-	modifier onlySeller() {
-		require(msg.sender == sellerAddress);
+    function viewOriginalNftOfPlayer(address _PlayerAddress) public view returns(address){
+        require(_PlayerAddress != address(0),"Address should not be the zero address");
+        return nftOf[_PlayerAddress];
+    }
+    // modifer such that only Player can perform action //
+	modifier onlyPlayer() {
+		require(msg.sender != escrAddress);
 		_;
 	}
-	// modifier which checks the player state
-	modifier inPlayerState(PlayerState _state) {
-		require(playerState == _state);
+    // modifier to check if the escrow is available or not //
+    modifier inEscrAvailable(EscrAvailable _state) {
+		require(escrAvailable == _state);
 		_;
-	}
+	} 
 } 
