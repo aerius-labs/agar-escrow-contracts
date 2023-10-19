@@ -26,24 +26,64 @@ contract NftEscrowTest is Test {
 
     // function to test the deposit of the tokens //
 
-    function testDepositTokens() public {
+    function testDepositNftTokens() public {
         // creating Players //
         address player1Nft = address(1);
-        address player2Nft = address(2);
 
         // mint a new token to these players and approve it to the escrow contract //
         uint256 tokenId = 1;
         mockERC721.mint(player1Nft, tokenId);
+        // Before making the approve //
+        // changing msg.sender to player1Nft so that token owner can approve //
         vm.prank(player1Nft);
         mockERC721.approve(address(nftEscrow), tokenId);
 
         // Perfomring the transfer //
         // before making the msg.sender to player1
         vm.prank(player1Nft);
-        nftEscrow.depositNFT(address(mockERC721), 1);
+        nftEscrow.depositNFT(address(mockERC721), tokenId);
 
         // Checking if the deposit was successful
         address originalNft = nftEscrow.viewOriginalNftOfPlayer(player1Nft);
         assertEq(address(mockERC721), originalNft, "NFT deposit was not successful.");
     }
+
+    // writing fuzz test so to test it on multiple inputs //
+
+    function testFuzzDepositNftTokens(string memory playerAddress, uint256 tokenId) public {
+        // creating Players //
+        address player = address(bytes20(bytes(playerAddress)));
+        vm.assume(player != address(0)); // assume that player must not be zero address //
+
+        // mint a new token to these players and approve it to the escrow contract //
+        mockERC721.mint(player, tokenId);
+        // Before making the approve //
+        // changing msg.sender to player so that token owner can approve //
+        vm.prank(player);
+        mockERC721.approve(address(nftEscrow), tokenId);
+
+        // Perfomring the transfer //
+        // before making the msg.sender to player
+        vm.prank(player);
+        nftEscrow.depositNFT(address(mockERC721), tokenId);
+
+        // Checking if the deposit was successful
+        address originalNft = nftEscrow.viewOriginalNftOfPlayer(player);
+        assertEq(address(mockERC721), originalNft, "NFT deposit was not successful.");
+    }
+
+    // writing a failure test if player who does not have token or not approved //
+    function testFailPlayerDoesNotHaveApprovedOrOwner() public{
+        // creating Players and assigning tokens //
+        address player = address(1);
+        uint256 tokenId = 1;
+
+        // Checking owner and approved owner of tokenId //
+        address originalPlayer = mockERC721.ownerOf(tokenId);
+        address approvalAddress = mockERC721.getApproved(tokenId);
+
+        // checking if they fails the test or not //
+        assertEq(originalPlayer,player,"Owner test");
+        assertEq(approvalAddress,address(nftEscrow), "Approval Test");
+    } 
 }
