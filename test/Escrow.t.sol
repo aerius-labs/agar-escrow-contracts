@@ -73,7 +73,7 @@ contract NftEscrowTest is Test {
     }
 
     // writing a failure test if player who does not have token or not approved //
-    function testFailPlayerDoesNotHaveApprovedOrOwner() public{
+    function testFailPlayerDoesNotHaveApprovedOrOwner() public {
         // creating Players and assigning tokens //
         address player = address(1);
         uint256 tokenId = 1;
@@ -83,7 +83,7 @@ contract NftEscrowTest is Test {
         address approvalAddress = mockERC721.getApproved(tokenId);
 
         // checking if they fails the test or not //
-        assertEq(originalPlayer,player,"Owner test");
-        assertEq(approvalAddress,address(nftEscrow), "Approval Test");
-    } 
+        assertEq(originalPlayer, player, "Owner test");
+        assertEq(approvalAddress, address(nftEscrow), "Approval Test");
+    }
 }
