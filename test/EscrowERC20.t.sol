@@ -8,7 +8,7 @@ import "./mocks/MockERC20.sol";
 contract EscrowERC20Test is Test {
     EscrowERC20 public escrowERC20;
     MockERC20 public mockERC20;
-    uint256 maximumSafeAmount = 10 ** 18;    
+    uint256 maximumSafeAmount = 10 ** 18;
 
     function setUp() public {
         escrowERC20 = new EscrowERC20();
@@ -28,19 +28,19 @@ contract EscrowERC20Test is Test {
         address player1 = address(1);
 
         // amount of tokens that want to send //
-        uint256 amount = 100;   // amount must not be zero //
-        mockERC20.mint(player1,amount);
-        
+        uint256 amount = 100; // amount must not be zero //
+        mockERC20.mint(player1, amount);
+
         // now we have to approve reciever to transfer amount from sender
         vm.prank(player1);
         bool success = mockERC20.approve(address(escrowERC20), amount);
-        assertTrue(success,"ERC20: Approval failed");
+        assertTrue(success, "ERC20: Approval failed");
 
         vm.prank(player1);
         escrowERC20.depositTokens(address(mockERC20), amount);
 
-        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player1,address(mockERC20));
-        assertEq(amount,recieveAmount,"ERC20:Recieve tokens failes");
+        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player1, address(mockERC20));
+        assertEq(amount, recieveAmount, "ERC20:Recieve tokens failes");
     }
     // writing fuzz test so to test it on multiple inputs //
 
@@ -57,15 +57,15 @@ contract EscrowERC20Test is Test {
         // changing msg.sender to player so that token owner can approve //
         vm.prank(player);
         bool success = mockERC20.approve(address(escrowERC20), amount);
-        assertTrue(success,"ERC20: Approval failed");
-        
+        assertTrue(success, "ERC20: Approval failed");
+
         // Perfomring the transfer //
         // before making the msg.sender to player
         vm.prank(player);
         escrowERC20.depositTokens(address(mockERC20), amount);
 
         // Checking if the deposit was successful
-        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player,address(mockERC20));
-        assertEq(amount,recieveAmount,"ERC20:Recieve tokens failes");
+        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player, address(mockERC20));
+        assertEq(amount, recieveAmount, "ERC20:Recieve tokens failes");
     }
 }
