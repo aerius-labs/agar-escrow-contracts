@@ -14,7 +14,7 @@ contract NftEscrow is IERC721Receiver {
     address payable public escrAddress;
     address payable public playerAddress;
     address public nftAddress;
-    uint256 tokenId;
+    uint256 tokenID;
 
     mapping(address => address) nftOf; // this will map the players to their NFT address
     EscrAvailable public escrAvailable;
@@ -36,8 +36,8 @@ contract NftEscrow is IERC721Receiver {
     function depositNFT(address _NFTAddress, uint256 _TokenID) public inEscrAvailable(EscrAvailable.YES) onlyPlayer {
         nftAddress = _NFTAddress;
         playerAddress = payable(msg.sender);
-        tokenId = _TokenID;
-        ERC721(nftAddress).safeTransferFrom(msg.sender, address(this), tokenId);
+        tokenID = _TokenID;
+        ERC721(nftAddress).safeTransferFrom(msg.sender, address(this), tokenID);
         nftOf[playerAddress] = nftAddress;
     }
 
