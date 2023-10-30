@@ -8,7 +8,7 @@ import "./mocks/MockERC20.sol";
 contract EscrowERC20Test is Test {
     EscrowERC20 public escrowERC20;
     MockERC20 public mockERC20;
-    uint256 totalSupply = 10 ** 18;
+    uint256 totalSupply = 1000000 * (10 ** 18);
 
     function setUp() public {
         escrowERC20 = new EscrowERC20();
