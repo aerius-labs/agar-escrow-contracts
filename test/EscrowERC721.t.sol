@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {NftEscrow} from "../src/Escrow.sol";
+import {NftEscrow} from "../src/EscrowERC721.sol";
 import "./mocks/MockERC721.sol";
 
 contract NftEscrowTest is Test {
@@ -44,8 +44,8 @@ contract NftEscrowTest is Test {
         nftEscrow.depositNFT(address(mockERC721), tokenId);
 
         // Checking if the deposit was successful
-        address originalNft = nftEscrow.viewOriginalNftOfPlayer(player1Nft);
-        assertEq(address(mockERC721), originalNft, "NFT deposit was not successful.");
+        address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
+        assertEq(address(nftEscrow), currentOwnerOfNft, "NFT deposit was not successful.");
     }
 
     // writing fuzz test so to test it on multiple inputs //
@@ -68,8 +68,8 @@ contract NftEscrowTest is Test {
         nftEscrow.depositNFT(address(mockERC721), tokenId);
 
         // Checking if the deposit was successful
-        address originalNft = nftEscrow.viewOriginalNftOfPlayer(player);
-        assertEq(address(mockERC721), originalNft, "NFT deposit was not successful.");
+        address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
+        assertEq(address(nftEscrow), currentOwnerOfNft, "NFT deposit was not successful.");
     }
 
     // writing a failure test if player who does not have token or not approved //
