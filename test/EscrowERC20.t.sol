@@ -8,11 +8,11 @@ import "./mocks/MockERC20.sol";
 contract EscrowERC20Test is Test {
     EscrowERC20 public escrowERC20;
     MockERC20 public mockERC20;
-    uint256 maximumSafeAmount = 10 ** 18;
+    uint256 totalSupply = 10 ** 18;
 
     function setUp() public {
         escrowERC20 = new EscrowERC20();
-        mockERC20 = new MockERC20();
+        mockERC20 = new MockERC20(totalSupply);
     }
     // function to test the Escrow state //
 
@@ -49,7 +49,7 @@ contract EscrowERC20Test is Test {
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0)); // assume that player must not be zero address //
         vm.assume(amount > 0);
-        vm.assume(amount <= maximumSafeAmount);
+        vm.assume(amount <= totalSupply);
 
         // mint a new token to these players and approve it to the escrow contract //
         mockERC20.mint(player, amount);
@@ -67,5 +67,17 @@ contract EscrowERC20Test is Test {
         // Checking if the deposit was successful
         uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player, address(mockERC20));
         assertEq(amount, recieveAmount, "ERC20:Recieve tokens failes");
+    }
+    // function to test if playerhaszero balance or does not allowance the spender to tranfer //
+
+    function testFailPlayerDoesNotHaveBalanceOrAllowanceERC20() public {
+        // creating players //
+        address player = address(1);
+
+        uint256 initialAmount = mockERC20.balanceOf(player);
+        assertTrue(initialAmount != 0, "Player Does Not have sufficient balance");
+        vm.prank(player);
+        uint256 approvedAmount = mockERC20.allowance(player, address(escrowERC20));
+        assertTrue(approvedAmount != 0, "Escrow does not have approval of Transfer");
     }
 }
