@@ -12,6 +12,7 @@ contract NftEscrow is IERC721Receiver {
     error EscrowERC721__OnlyPlayerAllowed();
     error EscrowERC721__EscrowNotAvailable();
     error EscrowERC721__AddressMustBeNotZero();
+    error EscrowERC721__OnlyEscrowAllowed();
 
     /**
      * All enums
@@ -56,6 +57,17 @@ contract NftEscrow is IERC721Receiver {
         playerToNftAddressToTokenId[playerAddress][nftAddress] = tokenID;
     }
 
+    function transferNFT(address _PlayerAddress, address _NFTAdddres, uint256 _TokenID)
+        public
+        inEscrAvailable(EscrAvailable.YES)
+        onlyEscrow
+    {
+        nftAddress = _NFTAdddres;
+        playerAddress = payable(_PlayerAddress);
+        tokenID = _TokenID;
+        ERC721(nftAddress).safeTransferFrom(address(this), playerAddress, tokenID);
+    }
+
     /**
      * All modifiers
      */
@@ -63,6 +75,13 @@ contract NftEscrow is IERC721Receiver {
     modifier onlyPlayer() {
         if (msg.sender == escrAddress) {
             revert EscrowERC721__OnlyPlayerAllowed();
+        }
+        _;
+    }
+
+    modifier onlyEscrow() {
+        if (msg.sender != escrAddress) {
+            revert EscrowERC721__OnlyEscrowAllowed();
         }
         _;
     }

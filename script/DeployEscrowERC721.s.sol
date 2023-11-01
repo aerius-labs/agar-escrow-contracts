@@ -5,8 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {NftEscrow} from "../src/EscrowERC721.sol";
 
 contract DeployEscrowERC721 is Script {
-
-    function run() public returns(NftEscrow) {
+    function run() public returns (NftEscrow) {
         vm.startBroadcast();
         NftEscrow nftEscrow = new NftEscrow();
         vm.stopBroadcast();
