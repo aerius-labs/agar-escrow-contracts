@@ -86,4 +86,35 @@ contract NftEscrowTest is Test {
         assertEq(originalPlayer, player, "Owner test");
         assertEq(approvalAddress, address(nftEscrow), "Approval Test");
     }
+
+    function testFuzzTransferNftFromEscrow(string memory playerAddress, uint256 tokenId) public {
+        // creating players
+        address player = address(bytes20(bytes(playerAddress)));
+        vm.assume(player != address(0));
+        // minting tokens to Escrow for testing //
+        mockERC721.mint(address(nftEscrow), tokenId);
+        //calling from escrow to approve the transfer //
+        vm.prank(address(nftEscrow));
+        mockERC721.approve(player, tokenId);
+        // calling from escrow so that only escrow can perform transfer //
+        vm.prank(address(nftEscrow));
+        nftEscrow.transferNFT(player, address(mockERC721), tokenId);
+        // checking the current owner of that token matches our player //
+        address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
+        assertEq(player, currentOwnerOfNft, "NFT Transfer was not successful.");
+    }
+
+    function testFailFuzzEscrowDoesNotHaveOwnershipOrApproval(string memory playerAddress, uint256 tokenId) public {
+        // creating Players and assigning tokens //
+        address player = address(bytes20(bytes(playerAddress)));
+        vm.assume(player != address(0));
+
+        // checking the ownership //
+        address owner = mockERC721.ownerOf(tokenId);
+        assertEq(owner, address(nftEscrow), "owner Test");
+
+        //checking the approval //
+        address approvalAddress = mockERC721.getApproved(tokenId);
+        assertEq(approvalAddress, player, "Approval Test");
+    }
 }
