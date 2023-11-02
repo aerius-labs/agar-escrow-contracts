@@ -12,7 +12,7 @@ contract EscrowERC20Test is Test {
 
     function setUp() public {
         escrowERC20 = new EscrowERC20();
-        mockERC20 = new MockERC20(totalSupply);
+        mockERC20 = new MockERC20();
     }
     // function to test the Escrow state //
 
@@ -53,6 +53,8 @@ contract EscrowERC20Test is Test {
 
         // mint a new token to these players and approve it to the escrow contract //
         mockERC20.mint(player, amount);
+        amount = amount * (10 ** mockERC20.decimals()); // converting the amount into wei //
+
         // Before making the approve //
         // changing msg.sender to player so that token owner can approve //
         vm.prank(player);
@@ -66,7 +68,7 @@ contract EscrowERC20Test is Test {
 
         // Checking if the deposit was successful
         uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player, address(mockERC20));
-        assertEq(amount, recieveAmount, "ERC20:Recieve tokens failes");
+        assertEqDecimal(amount, recieveAmount, mockERC20.decimals(), "ERC20:Recieve tokens failes");
     }
     // function to test if playerhaszero balance or does not allowance the spender to tranfer //
 
@@ -79,5 +81,36 @@ contract EscrowERC20Test is Test {
         vm.prank(player);
         uint256 approvedAmount = mockERC20.allowance(player, address(escrowERC20));
         assertTrue(approvedAmount != 0, "Escrow does not have approval of Transfer");
+    }
+    // function to check the transfer of the tokens //
+
+    function testFuzztransferERC20Tokens(string memory playerAddress, uint256 amount) public {
+        // creating Players //
+        address player = address(bytes20(bytes(playerAddress)));
+        vm.assume(player != address(0)); // assume that player must not be zero address //
+        vm.assume(amount > 0);
+        vm.assume(amount <= totalSupply);
+
+        // mint a  tokens to escrow  //
+        mockERC20.mint(address(escrowERC20), amount);
+        amount = amount * (10 ** mockERC20.decimals()); // converting the amount to wei //
+        uint256 intialBalance = mockERC20.balanceOf(address(escrowERC20));
+        escrowERC20.updateTotalBalance(escrowERC20.totalBalance() + amount); // updating platfrom balance to avoid overflow underflow //
+
+        // to make the transfer doesnot need approve //
+        vm.prank(address(escrowERC20));
+        escrowERC20.transferTokens(player, address(mockERC20), amount);
+
+        assertEqDecimal(intialBalance, mockERC20.balanceOf(player), mockERC20.decimals(), "Transfer is Not successfull");
+    }
+    // function to test failure if the escrow does not have totalBalance or doesnot have contractBalance //
+
+    function testFailEscrowOrContractDoesNotHaveBalance() public {
+        // checking the platform balance //
+        uint256 platformBalance = escrowERC20.totalBalance();
+        assertTrue(platformBalance != 0, "Platform Does not have Balance");
+        // checking that particular contract has balance //
+        uint256 contractBalance = mockERC20.balanceOf(address(escrowERC20));
+        assertTrue(contractBalance != 0, "Escrow doesnot own this contract tokens");
     }
 }

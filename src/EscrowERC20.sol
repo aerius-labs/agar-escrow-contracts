@@ -12,6 +12,7 @@ contract EscrowERC20 {
     error EscrowERC20__OnlyPlayerAllowed();
     error EscrowERC20__EscrowNotAvailable();
     error EscrowERC20__AddressMustBeNotZero();
+    error EscrowERC721__OnlyEscrowAllowed();
     error EscrowERC20__PlayerContractDoNotHaveTokensTransfered();
 
     /**
@@ -53,6 +54,18 @@ contract EscrowERC20 {
         playerToContractToAmount[playerAddress][contractAddress] = _Amount;
     }
 
+    function transferTokens(address _PlayerAddress, address _ContractAddress, uint256 _Amount)
+        public
+        inEscrAvailable(EscrERC20Available.YES)
+        onlyEscrow
+    {
+        playerAddress = _PlayerAddress;
+        contractAddress = _ContractAddress;
+        bool success = ERC20(contractAddress).transfer(playerAddress, _Amount);
+        if (!success) revert EscrowERC20__TransferFailed(address(this), playerAddress, _Amount);
+        totalBalance -= _Amount;
+    }
+
     /**
      * All modifiers
      */
@@ -66,6 +79,13 @@ contract EscrowERC20 {
     modifier inEscrAvailable(EscrERC20Available _state) {
         if (escrAvailable != _state) {
             revert EscrowERC20__EscrowNotAvailable();
+        }
+        _;
+    }
+
+    modifier onlyEscrow() {
+        if (msg.sender != escrAddress) {
+            revert EscrowERC721__OnlyEscrowAllowed();
         }
         _;
     }
@@ -95,5 +115,9 @@ contract EscrowERC20 {
             revert EscrowERC20__PlayerContractDoNotHaveTokensTransfered();
         }
         return playerToContractToAmount[_PlayerAddress][_ContractAddress];
+    }
+
+    function updateTotalBalance(uint256 newBalance) public {
+        totalBalance = newBalance;
     }
 }
