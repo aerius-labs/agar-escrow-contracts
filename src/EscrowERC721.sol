@@ -65,6 +65,7 @@ contract NftEscrow is IERC721Receiver {
         nftAddress = _NFTAdddres;
         playerAddress = payable(_PlayerAddress);
         tokenID = _TokenID;
+        ERC721(nftAddress).approve(playerAddress,tokenID);
         ERC721(nftAddress).safeTransferFrom(address(this), playerAddress, tokenID);
     }
 

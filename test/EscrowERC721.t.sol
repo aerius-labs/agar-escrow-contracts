@@ -93,9 +93,6 @@ contract NftEscrowTest is Test {
         vm.assume(player != address(0));
         // minting tokens to Escrow for testing //
         mockERC721.mint(address(nftEscrow), tokenId);
-        //calling from escrow to approve the transfer //
-        vm.prank(address(nftEscrow));
-        mockERC721.approve(player, tokenId);
         // calling from escrow so that only escrow can perform transfer //
         vm.prank(address(nftEscrow));
         nftEscrow.transferNFT(player, address(mockERC721), tokenId);
