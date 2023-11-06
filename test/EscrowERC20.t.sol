@@ -9,6 +9,7 @@ contract EscrowERC20Test is Test {
     EscrowERC20 public escrowERC20;
     MockERC20 public mockERC20;
     uint256 totalSupply = 1000000 * (10 ** 18);
+    address public adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
 
     function setUp() public {
         escrowERC20 = new EscrowERC20();
@@ -98,7 +99,7 @@ contract EscrowERC20Test is Test {
         escrowERC20.updateTotalBalance(escrowERC20.totalBalance() + amount); // updating platfrom balance to avoid overflow underflow //
 
         // to make the transfer doesnot need approve //
-        vm.prank(address(escrowERC20));
+        vm.prank(adminAddress);
         escrowERC20.transferTokens(player, address(mockERC20), amount);
 
         assertEqDecimal(intialBalance, mockERC20.balanceOf(player), mockERC20.decimals(), "Transfer is Not successfull");

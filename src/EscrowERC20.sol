@@ -12,7 +12,7 @@ contract EscrowERC20 {
     error EscrowERC20__OnlyPlayerAllowed();
     error EscrowERC20__EscrowNotAvailable();
     error EscrowERC20__AddressMustBeNotZero();
-    error EscrowERC721__OnlyEscrowAllowed();
+    error EscrowERC721__OnlyAdminAllowed();
     error EscrowERC20__PlayerContractDoNotHaveTokensTransfered();
 
     /**
@@ -29,6 +29,7 @@ contract EscrowERC20 {
     address public escrAddress;
     address public playerAddress;
     address public contractAddress;
+    address public adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
     uint256 public totalBalance;
 
     EscrERC20Available public escrAvailable;
@@ -57,7 +58,7 @@ contract EscrowERC20 {
     function transferTokens(address _PlayerAddress, address _ContractAddress, uint256 _Amount)
         public
         inEscrAvailable(EscrERC20Available.YES)
-        onlyEscrow
+        onlyAdmin
     {
         playerAddress = _PlayerAddress;
         contractAddress = _ContractAddress;
@@ -83,9 +84,9 @@ contract EscrowERC20 {
         _;
     }
 
-    modifier onlyEscrow() {
-        if (msg.sender != escrAddress) {
-            revert EscrowERC721__OnlyEscrowAllowed();
+    modifier onlyAdmin() {
+        if (msg.sender != adminAddress) {
+            revert EscrowERC721__OnlyAdminAllowed();
         }
         _;
     }
