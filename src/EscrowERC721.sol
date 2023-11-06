@@ -12,7 +12,7 @@ contract NftEscrow is IERC721Receiver {
     error EscrowERC721__OnlyPlayerAllowed();
     error EscrowERC721__EscrowNotAvailable();
     error EscrowERC721__AddressMustBeNotZero();
-    error EscrowERC721__OnlyEscrowAllowed();
+    error EscrowERC721__OnlyAdminAllowed();
 
     /**
      * All enums
@@ -28,6 +28,7 @@ contract NftEscrow is IERC721Receiver {
     address payable public escrAddress;
     address payable public playerAddress;
     address public nftAddress;
+    address public adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
     uint256 tokenID;
 
     EscrAvailable public escrAvailable;
@@ -60,12 +61,11 @@ contract NftEscrow is IERC721Receiver {
     function transferNFT(address _PlayerAddress, address _NFTAdddres, uint256 _TokenID)
         public
         inEscrAvailable(EscrAvailable.YES)
-        onlyEscrow
+        onlyAdmin
     {
         nftAddress = _NFTAdddres;
         playerAddress = payable(_PlayerAddress);
         tokenID = _TokenID;
-        ERC721(nftAddress).approve(playerAddress,tokenID);
         ERC721(nftAddress).safeTransferFrom(address(this), playerAddress, tokenID);
     }
 
@@ -80,9 +80,9 @@ contract NftEscrow is IERC721Receiver {
         _;
     }
 
-    modifier onlyEscrow() {
-        if (msg.sender != escrAddress) {
-            revert EscrowERC721__OnlyEscrowAllowed();
+    modifier onlyAdmin() {
+        if (msg.sender != adminAddress) {
+            revert EscrowERC721__OnlyAdminAllowed();
         }
         _;
     }

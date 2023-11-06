@@ -8,6 +8,7 @@ import "./mocks/MockERC721.sol";
 contract NftEscrowTest is Test {
     NftEscrow public nftEscrow;
     MockERC721 public mockERC721;
+    address public adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
 
     // intializing the ecrow contract and MockERC721 //
 
@@ -93,15 +94,15 @@ contract NftEscrowTest is Test {
         vm.assume(player != address(0));
         // minting tokens to Escrow for testing //
         mockERC721.mint(address(nftEscrow), tokenId);
-        // calling from escrow so that only escrow can perform transfer //
-        vm.prank(address(nftEscrow));
+        // calling from admin so that only admin can perform transfer //
+        vm.prank(address(adminAddress));
         nftEscrow.transferNFT(player, address(mockERC721), tokenId);
         // checking the current owner of that token matches our player //
         address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
         assertEq(player, currentOwnerOfNft, "NFT Transfer was not successful.");
     }
 
-    function testFailFuzzEscrowDoesNotHaveOwnershipOrApproval(string memory playerAddress, uint256 tokenId) public {
+    function testFailFuzzEscrowDoesNotHaveOwnership(string memory playerAddress, uint256 tokenId) public {
         // creating Players and assigning tokens //
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0));
@@ -109,9 +110,5 @@ contract NftEscrowTest is Test {
         // checking the ownership //
         address owner = mockERC721.ownerOf(tokenId);
         assertEq(owner, address(nftEscrow), "owner Test");
-
-        //checking the approval //
-        address approvalAddress = mockERC721.getApproved(tokenId);
-        assertEq(approvalAddress, player, "Approval Test");
     }
 }
