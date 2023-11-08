@@ -34,7 +34,7 @@ contract NftEscrow is IERC721Receiver, ReentrancyGuard {
         address from,
         uint256 tokenId,
         bytes calldata data
-    ) public override returns (bytes4) {
+    ) external override returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
@@ -43,7 +43,7 @@ contract NftEscrow is IERC721Receiver, ReentrancyGuard {
     function depositNFT(
         address _NFTAddress,
         uint256 _TokenID
-    ) public nonReentrant {
+    ) external nonReentrant {
         if (escrAvailable == false) revert EscrowERC721__EscrowNotAvailable();
         nftOfs[msg.sender].push(_NFTAddress);
         playerToNftAddressToTokenId[msg.sender][_NFTAddress] = _TokenID;
@@ -84,7 +84,7 @@ contract NftEscrow is IERC721Receiver, ReentrancyGuard {
 
     function viewOriginalNftsOfPlayer(
         address _PlayerAddress
-    ) public view returns (address[] memory) {
+    ) external view returns (address[] memory) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC721__AddressMustBeNotZero();
         }
@@ -94,7 +94,7 @@ contract NftEscrow is IERC721Receiver, ReentrancyGuard {
     function viewOriginalNftTokensThatPlayerSendToEscrow(
         address _PlayerAddress,
         address _NFTAddress
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC721__AddressMustBeNotZero();
         }
