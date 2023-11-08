@@ -34,7 +34,7 @@ contract EscrowERC20 is ReentrancyGuard {
     function depositTokens(
         address _ContractAddress,
         uint256 _Amount
-    ) public nonReentrant {
+    ) external nonReentrant {
         if (escrAvailable == false) revert EscrowERC20__EscrowNotAvailable();
         totalBalance += _Amount;
         playerToContracts[msg.sender].push(_ContractAddress);
@@ -87,7 +87,7 @@ contract EscrowERC20 is ReentrancyGuard {
      */
     function viewAllOriginalContractAddressOfPlayer(
         address _PlayerAddress
-    ) public view returns (address[] memory) {
+    ) external view returns (address[] memory) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC20__AddressMustBeNotZero();
         }
@@ -97,7 +97,7 @@ contract EscrowERC20 is ReentrancyGuard {
     function viewOriginalTokensThatPlayerSendToEscrow(
         address _PlayerAddress,
         address _ContractAddress
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC20__AddressMustBeNotZero();
         }
@@ -111,7 +111,7 @@ contract EscrowERC20 is ReentrancyGuard {
     }
 
     // this function is only used for testing to avoid interger underflow whenever we transfer balance goes negative //
-    function updateTotalBalance(uint256 newBalance) public {
+    function updateTotalBalance(uint256 newBalance) external {
         totalBalance = newBalance;
     }
 }
