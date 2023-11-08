@@ -24,8 +24,8 @@ contract NftEscrow is IERC721Receiver, ReentrancyGuard {
     mapping(address => address[]) nftOfs; // this will map the players to their NFT(contract) address
     mapping(address => mapping(address => uint256)) playerToNftAddressToTokenId;
 
-    constructor() {
-        adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
+    constructor(address _AdminAddress) {
+        adminAddress = _AdminAddress;
         escrAvailable = true;
     }
 

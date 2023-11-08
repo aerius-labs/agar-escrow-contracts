@@ -13,7 +13,7 @@ contract NftEscrowTest is Test {
     // intializing the ecrow contract and MockERC721 //
 
     function setUp() public {
-        nftEscrow = new NftEscrow();
+        nftEscrow = new NftEscrow(adminAddress);
         mockERC721 = new MockERC721();
     }
 
