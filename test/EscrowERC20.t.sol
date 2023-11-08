@@ -12,7 +12,7 @@ contract EscrowERC20Test is Test {
     address public adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
 
     function setUp() public {
-        escrowERC20 = new EscrowERC20();
+        escrowERC20 = new EscrowERC20(adminAddress);
         mockERC20 = new MockERC20();
     }
 

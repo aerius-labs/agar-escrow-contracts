@@ -26,8 +26,8 @@ contract EscrowERC20 is ReentrancyGuard {
     mapping(address => mapping(address => uint256)) playerToContractToAmount;
     mapping(address => address[]) playerToContracts;
 
-    constructor() {
-        adminAddress = 0x4cd4df5E4485ffd09345bB5dAC0fcE06Dd00ef07;
+    constructor(address _AdminAddress) {
+        adminAddress = _AdminAddress;
         escrAvailable = true;
     }
 
