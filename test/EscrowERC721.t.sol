@@ -20,9 +20,9 @@ contract NftEscrowTest is Test {
     // function to test the Escrow state //
 
     function testInitialEscrowAvailable() public {
-        NftEscrow.EscrAvailable expected = NftEscrow.EscrAvailable.YES;
-        NftEscrow.EscrAvailable actual = nftEscrow.escrAvailable();
-        assertEq(uint256(expected), uint256(actual), "Escrow should be available initially.");
+        bool expected = true;
+        bool actual = nftEscrow.escrAvailable();
+        assertEq(expected, actual, "Escrow should be available initially.");
     }
 
     // function to test the deposit of the tokens //
@@ -46,12 +46,19 @@ contract NftEscrowTest is Test {
 
         // Checking if the deposit was successful
         address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
-        assertEq(address(nftEscrow), currentOwnerOfNft, "NFT deposit was not successful.");
+        assertEq(
+            address(nftEscrow),
+            currentOwnerOfNft,
+            "NFT deposit was not successful."
+        );
     }
 
     // writing fuzz test so to test it on multiple inputs //
 
-    function testFuzzDepositNftTokens(string memory playerAddress, uint256 tokenId) public {
+    function testFuzzDepositNftTokens(
+        string memory playerAddress,
+        uint256 tokenId
+    ) public {
         // creating Players //
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0)); // assume that player must not be zero address //
@@ -70,7 +77,11 @@ contract NftEscrowTest is Test {
 
         // Checking if the deposit was successful
         address currentOwnerOfNft = mockERC721.ownerOf(tokenId);
-        assertEq(address(nftEscrow), currentOwnerOfNft, "NFT deposit was not successful.");
+        assertEq(
+            address(nftEscrow),
+            currentOwnerOfNft,
+            "NFT deposit was not successful."
+        );
     }
 
     // writing a failure test if player who does not have token or not approved //
@@ -88,7 +99,10 @@ contract NftEscrowTest is Test {
         assertEq(approvalAddress, address(nftEscrow), "Approval Test");
     }
 
-    function testFuzzTransferNftFromEscrow(string memory playerAddress, uint256 tokenId) public {
+    function testFuzzTransferNftFromEscrow(
+        string memory playerAddress,
+        uint256 tokenId
+    ) public {
         // creating players
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0));
@@ -102,7 +116,10 @@ contract NftEscrowTest is Test {
         assertEq(player, currentOwnerOfNft, "NFT Transfer was not successful.");
     }
 
-    function testFailFuzzEscrowDoesNotHaveOwnership(string memory playerAddress, uint256 tokenId) public {
+    function testFailFuzzEscrowDoesNotHaveOwnership(
+        string memory playerAddress,
+        uint256 tokenId
+    ) public {
         // creating Players and assigning tokens //
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0));
