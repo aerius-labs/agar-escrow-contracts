@@ -56,7 +56,7 @@ contract EscrowERC20 is ReentrancyGuard {
         address _PlayerAddress,
         address _ContractAddress,
         uint256 _Amount
-    ) public onlyAdmin nonReentrant {
+    ) external onlyAdmin nonReentrant {
         if (escrAvailable == false) revert EscrowERC20__EscrowNotAvailable();
         totalBalance -= _Amount;
         bool success = ERC20(_ContractAddress).transfer(
