@@ -15,13 +15,15 @@ contract EscrowERC20Test is Test {
         escrowERC20 = new EscrowERC20();
         mockERC20 = new MockERC20();
     }
+
     // function to test the Escrow state //
 
     function testInitialEscrowERC20Available() public {
-        EscrowERC20.EscrERC20Available expected = EscrowERC20.EscrERC20Available.YES;
-        EscrowERC20.EscrERC20Available actual = escrowERC20.escrAvailable();
-        assertEq(uint256(expected), uint256(actual), "Escrow should be available initially.");
+        bool expected = true;
+        bool actual = escrowERC20.escrAvailable();
+        assertEq(expected, actual, "Escrow should be available initially.");
     }
+
     // function to test the deposit of the tokens //
 
     function testDepositERC20Tokens() public {
@@ -40,12 +42,20 @@ contract EscrowERC20Test is Test {
         vm.prank(player1);
         escrowERC20.depositTokens(address(mockERC20), amount);
 
-        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player1, address(mockERC20));
+        uint256 recieveAmount = escrowERC20
+            .viewOriginalTokensThatPlayerSendToEscrow(
+                player1,
+                address(mockERC20)
+            );
         assertEq(amount, recieveAmount, "ERC20:Recieve tokens failes");
     }
+
     // writing fuzz test so to test it on multiple inputs //
 
-    function testFuzzDepositERC20Tokens(string memory playerAddress, uint256 amount) public {
+    function testFuzzDepositERC20Tokens(
+        string memory playerAddress,
+        uint256 amount
+    ) public {
         // creating Players //
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0)); // assume that player must not be zero address //
@@ -68,9 +78,19 @@ contract EscrowERC20Test is Test {
         escrowERC20.depositTokens(address(mockERC20), amount);
 
         // Checking if the deposit was successful
-        uint256 recieveAmount = escrowERC20.viewOriginalTokensThatPlayerSendToEscrow(player, address(mockERC20));
-        assertEqDecimal(amount, recieveAmount, mockERC20.decimals(), "ERC20:Recieve tokens failes");
+        uint256 recieveAmount = escrowERC20
+            .viewOriginalTokensThatPlayerSendToEscrow(
+                player,
+                address(mockERC20)
+            );
+        assertEqDecimal(
+            amount,
+            recieveAmount,
+            mockERC20.decimals(),
+            "ERC20:Recieve tokens failes"
+        );
     }
+
     // function to test if playerhaszero balance or does not allowance the spender to tranfer //
 
     function testFailPlayerDoesNotHaveBalanceOrAllowanceERC20() public {
@@ -78,14 +98,27 @@ contract EscrowERC20Test is Test {
         address player = address(1);
 
         uint256 initialAmount = mockERC20.balanceOf(player);
-        assertTrue(initialAmount != 0, "Player Does Not have sufficient balance");
+        assertTrue(
+            initialAmount != 0,
+            "Player Does Not have sufficient balance"
+        );
         vm.prank(player);
-        uint256 approvedAmount = mockERC20.allowance(player, address(escrowERC20));
-        assertTrue(approvedAmount != 0, "Escrow does not have approval of Transfer");
+        uint256 approvedAmount = mockERC20.allowance(
+            player,
+            address(escrowERC20)
+        );
+        assertTrue(
+            approvedAmount != 0,
+            "Escrow does not have approval of Transfer"
+        );
     }
+
     // function to check the transfer of the tokens //
 
-    function testFuzztransferERC20Tokens(string memory playerAddress, uint256 amount) public {
+    function testFuzztransferERC20Tokens(
+        string memory playerAddress,
+        uint256 amount
+    ) public {
         // creating Players //
         address player = address(bytes20(bytes(playerAddress)));
         vm.assume(player != address(0)); // assume that player must not be zero address //
@@ -102,8 +135,14 @@ contract EscrowERC20Test is Test {
         vm.prank(adminAddress);
         escrowERC20.transferTokens(player, address(mockERC20), amount);
 
-        assertEqDecimal(intialBalance, mockERC20.balanceOf(player), mockERC20.decimals(), "Transfer is Not successfull");
+        assertEqDecimal(
+            intialBalance,
+            mockERC20.balanceOf(player),
+            mockERC20.decimals(),
+            "Transfer is Not successfull"
+        );
     }
+
     // function to test failure if the escrow does not have totalBalance or doesnot have contractBalance //
 
     function testFailEscrowOrContractDoesNotHaveBalance() public {
@@ -112,6 +151,9 @@ contract EscrowERC20Test is Test {
         assertTrue(platformBalance != 0, "Platform Does not have Balance");
         // checking that particular contract has balance //
         uint256 contractBalance = mockERC20.balanceOf(address(escrowERC20));
-        assertTrue(contractBalance != 0, "Escrow doesnot own this contract tokens");
+        assertTrue(
+            contractBalance != 0,
+            "Escrow doesnot own this contract tokens"
+        );
     }
 }
