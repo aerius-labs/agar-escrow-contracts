@@ -3,69 +3,81 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract EscrowERC20 {
+contract EscrowERC20 is ReentrancyGuard {
     /**
      * All Errors
      */
     error EscrowERC20__TransferFailed(address from, address to, uint256 amount);
-    error EscrowERC20__OnlyPlayerAllowed();
     error EscrowERC20__EscrowNotAvailable();
     error EscrowERC20__AddressMustBeNotZero();
+    error EscrowERC721__OnlyAdminAllowed();
     error EscrowERC20__PlayerContractDoNotHaveTokensTransfered();
 
-    /**
-     * All enums
-     */
-    enum EscrERC20Available {
-        NO,
-        YES
-    }
     /**
      * All state variables
      */
 
-    address public escrAddress;
-    address public playerAddress;
-    address public contractAddress;
+    address public adminAddress;
     uint256 public totalBalance;
 
-    EscrERC20Available public escrAvailable;
+    bool public escrAvailable;
     mapping(address => mapping(address => uint256)) playerToContractToAmount;
     mapping(address => address[]) playerToContracts;
 
-    constructor() {
-        escrAddress = address(this);
-        escrAvailable = EscrERC20Available.YES;
+    constructor(address _AdminAddress) {
+        adminAddress = _AdminAddress;
+        escrAvailable = true;
     }
 
-    function depositTokens(address _ContractAddress, uint256 _Amount)
-        public
-        inEscrAvailable(EscrERC20Available.YES)
-        onlyPlayer
-    {
-        playerAddress = msg.sender;
-        contractAddress = _ContractAddress;
-        bool success = ERC20(_ContractAddress).transferFrom(msg.sender, address(this), _Amount);
-        if (!success) revert EscrowERC20__TransferFailed(msg.sender, address(this), _Amount);
+    function depositTokens(
+        address _ContractAddress,
+        uint256 _Amount
+    ) external nonReentrant {
+        if (escrAvailable == false) revert EscrowERC20__EscrowNotAvailable();
         totalBalance += _Amount;
-        playerToContracts[playerAddress].push(contractAddress);
-        playerToContractToAmount[playerAddress][contractAddress] = _Amount;
+        playerToContracts[msg.sender].push(_ContractAddress);
+        playerToContractToAmount[msg.sender][_ContractAddress] = _Amount;
+        bool success = ERC20(_ContractAddress).transferFrom(
+            msg.sender,
+            address(this),
+            _Amount
+        );
+        if (!success)
+            revert EscrowERC20__TransferFailed(
+                msg.sender,
+                address(this),
+                _Amount
+            );
+    }
+
+    function transferTokens(
+        address _PlayerAddress,
+        address _ContractAddress,
+        uint256 _Amount
+    ) external onlyAdmin nonReentrant {
+        if (escrAvailable == false) revert EscrowERC20__EscrowNotAvailable();
+        totalBalance -= _Amount;
+        bool success = ERC20(_ContractAddress).transfer(
+            _PlayerAddress,
+            _Amount
+        );
+        if (!success)
+            revert EscrowERC20__TransferFailed(
+                address(this),
+                _PlayerAddress,
+                _Amount
+            );
     }
 
     /**
      * All modifiers
      */
-    modifier onlyPlayer() {
-        if (msg.sender == escrAddress) {
-            revert EscrowERC20__OnlyPlayerAllowed();
-        }
-        _;
-    }
 
-    modifier inEscrAvailable(EscrERC20Available _state) {
-        if (escrAvailable != _state) {
-            revert EscrowERC20__EscrowNotAvailable();
+    modifier onlyAdmin() {
+        if (msg.sender != adminAddress) {
+            revert EscrowERC721__OnlyAdminAllowed();
         }
         _;
     }
@@ -73,18 +85,19 @@ contract EscrowERC20 {
     /**
      * View functions
      */
-    function viewAllOriginalContractAddressOfPlayer(address _PlayerAddress) public view returns (address[] memory) {
+    function viewAllOriginalContractAddressOfPlayer(
+        address _PlayerAddress
+    ) external view returns (address[] memory) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC20__AddressMustBeNotZero();
         }
-        return playerToContracts[playerAddress];
+        return playerToContracts[_PlayerAddress];
     }
 
-    function viewOriginalTokensThatPlayerSendToEscrow(address _PlayerAddress, address _ContractAddress)
-        public
-        view
-        returns (uint256)
-    {
+    function viewOriginalTokensThatPlayerSendToEscrow(
+        address _PlayerAddress,
+        address _ContractAddress
+    ) external view returns (uint256) {
         if (_PlayerAddress == address(0)) {
             revert EscrowERC20__AddressMustBeNotZero();
         }
@@ -95,5 +108,10 @@ contract EscrowERC20 {
             revert EscrowERC20__PlayerContractDoNotHaveTokensTransfered();
         }
         return playerToContractToAmount[_PlayerAddress][_ContractAddress];
+    }
+
+    // this function is only used for testing to avoid interger underflow whenever we transfer balance goes negative //
+    function updateTotalBalance(uint256 newBalance) external {
+        totalBalance = newBalance;
     }
 }
